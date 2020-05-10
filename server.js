@@ -15,6 +15,9 @@ const bootcamps = require("./routes/bootcamps");
 
 const app = express();
 
+// JSON Body parser
+app.use(express.json());
+
 if (process.env.NODE_ENV === "dev") {
   app.use(morgan("combined"));
 }
