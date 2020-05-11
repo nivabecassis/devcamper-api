@@ -1,3 +1,4 @@
+const ApiError = require("../utils/ApiError");
 const Bootcamp = require("../models/Bootcamp");
 
 // @desc    Get all bootcamps
@@ -10,7 +11,7 @@ exports.getBootcamps = async (req, res, next) => {
       .status(200)
       .json({ success: true, data: bootcamps, count: bootcamps.length });
   } catch (err) {
-    res.status(500).json({ success: false, error: err });
+    next(new ApiError("Server error", 500));
   }
 };
 
@@ -21,10 +22,15 @@ exports.getBootcamp = async (req, res, next) => {
   try {
     const bootcamp = await Bootcamp.findById(req.params.id);
 
-    if (!bootcamp) throw new Error("Bootcamp not found");
+    if (!bootcamp)
+      return next(
+        new ApiError(`Could not find bootcamp with id ${req.params.id}`),
+        404
+      );
+
     res.status(200).json({ success: true, data: bootcamp });
   } catch (err) {
-    res.status(400).json({ success: false, error: err });
+    next(new ApiError(`Could not find bootcamp with id ${req.params.id}`), 404);
   }
 };
 
@@ -36,7 +42,7 @@ exports.createBootcamp = async (req, res, next) => {
     const bootcamp = await Bootcamp.create(req.body);
     res.status(201).json({ success: true, data: bootcamp });
   } catch (err) {
-    res.status(400).json({ success: false, error: err });
+    next(new ApiError(`Invalid data for id ${req.body.id}`), 400);
   }
 };
 
@@ -51,13 +57,15 @@ exports.updateBootcamp = async (req, res, next) => {
     });
 
     if (!bootcamp) {
-      return res.status(400).json({ success: false });
+      return next(
+        new ApiError(`Could not find bootcamp with ID ${req.params.id}`),
+        404
+      );
     }
 
     res.status(200).json({ success: true, data: bootcamp });
   } catch (err) {
-    // res.status(400).json({ success: false, error: err });
-    next(err);
+    next(new ApiError(`Could not find bootcamp with ID ${req.params.id}`), 404);
   }
 };
 
@@ -69,11 +77,14 @@ exports.deleteBootcamp = async (req, res, next) => {
     const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
 
     if (!bootcamp) {
-      return res.status(400).json({ success: false });
+      return next(
+        new ApiError(`Could not find bootcamp with ID ${req.params.id}`),
+        404
+      );
     }
 
     res.status(200).json({ success: true });
   } catch (err) {
-    res.status(400).json({ success: false, error: err });
+    next(new ApiError(`Could not find bootcamp with ID ${req.params.id}`), 404);
   }
 };
