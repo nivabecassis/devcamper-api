@@ -11,7 +11,7 @@ exports.getBootcamps = async (req, res, next) => {
       .status(200)
       .json({ success: true, data: bootcamps, count: bootcamps.length });
   } catch (err) {
-    next(new ApiError("Server error", 500));
+    next(err);
   }
 };
 
@@ -22,15 +22,15 @@ exports.getBootcamp = async (req, res, next) => {
   try {
     const bootcamp = await Bootcamp.findById(req.params.id);
 
-    if (!bootcamp)
+    if (!bootcamp) {
       return next(
-        new ApiError(`Could not find bootcamp with id ${req.params.id}`),
-        404
+        new ApiError(`Resource not found with ID ${req.params.id}`, 404)
       );
+    }
 
     res.status(200).json({ success: true, data: bootcamp });
   } catch (err) {
-    next(new ApiError(`Could not find bootcamp with id ${req.params.id}`), 404);
+    next(err);
   }
 };
 
@@ -42,7 +42,7 @@ exports.createBootcamp = async (req, res, next) => {
     const bootcamp = await Bootcamp.create(req.body);
     res.status(201).json({ success: true, data: bootcamp });
   } catch (err) {
-    next(new ApiError(`Invalid data for id ${req.body.id}`), 400);
+    next(err);
   }
 };
 
@@ -58,14 +58,14 @@ exports.updateBootcamp = async (req, res, next) => {
 
     if (!bootcamp) {
       return next(
-        new ApiError(`Could not find bootcamp with ID ${req.params.id}`),
+        new ApiError(`Resource not found with ID ${req.params.id}`),
         404
       );
     }
 
     res.status(200).json({ success: true, data: bootcamp });
   } catch (err) {
-    next(new ApiError(`Could not find bootcamp with ID ${req.params.id}`), 404);
+    next(err);
   }
 };
 
@@ -78,13 +78,13 @@ exports.deleteBootcamp = async (req, res, next) => {
 
     if (!bootcamp) {
       return next(
-        new ApiError(`Could not find bootcamp with ID ${req.params.id}`),
+        new ApiError(`Resource not found with ID ${req.params.id}`),
         404
       );
     }
 
     res.status(200).json({ success: true });
   } catch (err) {
-    next(new ApiError(`Could not find bootcamp with ID ${req.params.id}`), 404);
+    next(err);
   }
 };
