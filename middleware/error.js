@@ -1,11 +1,10 @@
 const ApiError = require("../utils/ApiError");
 
 const errorHandler = (err, req, res, next) => {
-  console.log(err);
-
   let error = { ...err };
 
   error.message = err.message || "Server error";
+  error.statusCode = err.statusCode || 500;
 
   // Mongoose Cast error
   if (error.name === "CastError") {
@@ -25,9 +24,8 @@ const errorHandler = (err, req, res, next) => {
     );
   }
 
-  res
-    .status(error.statusCode || 500)
-    .json({ success: false, error: error.message });
+  console.log(`Error: ${error.message}`);
+  res.status(error.statusCode).json({ success: false, error: error.message });
 };
 
 module.exports = errorHandler;

@@ -36,6 +36,9 @@ const BootcampSchema = new mongoose.Schema(
       ]
     },
     address: {
+      // Address is required as input from the client but it
+      // will be saved in the location field as a GeoJSON
+      // Never actually stored in the db
       type: String,
       required: [true, "Please add an address"]
     },
@@ -112,6 +115,7 @@ const BootcampSchema = new mongoose.Schema(
 );
 
 // Create bootcamp slug from the name
+// Reminder: A slug is used for URL friendly names
 BootcampSchema.pre("save", function(next) {
   this.slug = slugify(this.name, { lower: true });
   next();
