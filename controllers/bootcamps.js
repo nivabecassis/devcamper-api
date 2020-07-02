@@ -12,7 +12,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   // The copy should not contain these fields
   // They are added as query projection
   const reqQuery = { ...req.query };
-  const excludeFieldsList = ["select", "sort"];
+  const excludeFieldsList = ["select", "sort", "page", "limit"];
   excludeFieldsList.forEach((param) => delete reqQuery[param]);
 
   // Use of operators in request
@@ -39,10 +39,32 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     query = query.sort("-createdAt");
   }
 
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
+  const pagination = { limit };
+
+  if (endIndex < total) {
+    pagination.next = page + 1;
+  }
+
+  if (startIndex > 0) {
+    pagination.previous = page - 1;
+  }
+
   const bootcamps = await query;
-  res
-    .status(200)
-    .json({ success: true, data: bootcamps, count: bootcamps.length });
+  res.status(200).json({
+    success: true,
+    data: bootcamps,
+    pagination,
+    count: bootcamps.length,
+  });
 });
 
 // @desc    Get a single bootcamp
