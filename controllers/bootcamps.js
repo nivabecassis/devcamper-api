@@ -7,10 +7,30 @@ const geocoder = require("../utils/geocoder");
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  let queryStr = JSON.stringify(req.query);
-  queryStr = queryStr.replace(/\b(lt|lte|gt|gte|in)\b/g, match => `$${match}`);
+  let query;
 
-  const bootcamps = await Bootcamp.find(JSON.parse(queryStr));
+  // The copy should not contain these fields
+  // They are added as query projection
+  const reqQuery = { ...req.query };
+  const excludeFieldsList = ["select"];
+  excludeFieldsList.forEach((param) => delete reqQuery[param]);
+
+  // Use of operators in request
+  let queryStr = JSON.stringify(reqQuery);
+  queryStr = queryStr.replace(
+    /\b(lt|lte|gt|gte|in)\b/g,
+    (match) => `$${match}`
+  );
+
+  query = Bootcamp.find(JSON.parse(queryStr));
+
+  // Project the requested fields
+  if (req.query.select) {
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+
+  const bootcamps = await query;
   res
     .status(200)
     .json({ success: true, data: bootcamps, count: bootcamps.length });
@@ -44,7 +64,7 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
   if (!bootcamp) {
     return next(
@@ -85,7 +105,7 @@ exports.getBootcampsFromRadius = asyncHandler(async (req, res, next) => {
   // Produces a value in radians
   const radius = distance / 3963;
   const bootcamps = await Bootcamp.find({
-    location: { $geoWithin: { $centerSphere: [[long, lat], radius] } }
+    location: { $geoWithin: { $centerSphere: [[long, lat], radius] } },
   });
 
   return res
