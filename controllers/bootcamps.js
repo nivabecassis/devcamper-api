@@ -12,7 +12,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   // The copy should not contain these fields
   // They are added as query projection
   const reqQuery = { ...req.query };
-  const excludeFieldsList = ["select"];
+  const excludeFieldsList = ["select", "sort"];
   excludeFieldsList.forEach((param) => delete reqQuery[param]);
 
   // Use of operators in request
@@ -24,10 +24,19 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
   query = Bootcamp.find(JSON.parse(queryStr));
 
-  // Project the requested fields
+  // Project the requested fields (select)
   if (req.query.select) {
     const fields = req.query.select.split(",").join(" ");
     query = query.select(fields);
+  }
+
+  // Sorting
+  if (req.query.sort) {
+    const sortInstruction = req.query.sort.split(",").join(" ");
+    console.log(sortInstruction);
+    query = query.sort(sortInstruction);
+  } else {
+    query = query.sort("-createdAt");
   }
 
   const bootcamps = await query;
