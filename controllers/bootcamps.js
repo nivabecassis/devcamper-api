@@ -22,7 +22,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     (match) => `$${match}`
   );
 
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Bootcamp.find(JSON.parse(queryStr)).populate("courses");
 
   // Project the requested fields (select)
   if (req.query.select) {
@@ -71,7 +71,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/bootcamps/:id
 // @access  Public
 exports.getBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findById(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id).populate("courses");
   if (!bootcamp) {
     return next(
       new ApiError(`Resource not found with ID ${req.params.id}`, 404)

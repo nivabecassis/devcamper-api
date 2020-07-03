@@ -148,11 +148,11 @@ BootcampSchema.pre("save", async function (next) {
 // });
 
 // Reverse populate with virtuals
-// BootcampSchema.virtual("courses", {
-//   ref: "Course",
-//   localField: "_id",
-//   foreignField: "bootcamp",
-//   justOne: false
-// });
+BootcampSchema.virtual("courses", {
+  ref: "Course",
+  localField: "_id",
+  foreignField: "bootcamp",
+  justOne: false,
+});
 
 module.exports = mongoose.model("Bootcamp", BootcampSchema);

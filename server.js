@@ -13,6 +13,7 @@ connectDB();
 
 // Get routes
 const bootcamps = require("./routes/bootcamps");
+const courses = require("./routes/courses");
 
 const app = express();
 
@@ -25,6 +26,7 @@ if (process.env.NODE_ENV === "dev") {
 
 // Mount routes
 app.use("/api/v1/bootcamps", bootcamps);
+app.use("/api/v1/courses", courses);
 
 // Custom error handling
 app.use(errorHandler);
@@ -41,5 +43,5 @@ const server = app.listen(PORT, () =>
 // Handle unhandled promises and crash server
 process.on("unhandledRejection", (err, promise) => {
   console.log(`Error: ${err.message}`.red);
-  server.close(err => process.exit(1));
+  server.close((err) => process.exit(1));
 });
