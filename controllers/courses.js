@@ -77,3 +77,20 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ success: true, data: course });
 });
+
+// @desc    Delete a course
+// @route   DELETE /api/v1/courses/:id
+// @access  Private
+exports.deleteCourse = asyncHandler(async (req, res, next) => {
+  let course = await Course.findById(req.params.id);
+  if (!course) {
+    return next(
+      new ApiError(`Resource not found with ID ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  // Trigger remove middleware
+  course.remove();
+
+  res.status(200).json({ success: true });
+});
