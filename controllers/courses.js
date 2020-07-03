@@ -59,3 +59,21 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
   const course = await Course.create(req.body);
   res.status(200).json({ success: true, data: course });
 });
+
+// @desc    Update a course
+// @route   PUT /api/v1/courses/:id
+// @access  Private
+exports.updateCourse = asyncHandler(async (req, res, next) => {
+  let course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!course) {
+    return next(
+      new ApiError(`Resource not found with ID ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  res.status(200).json({ success: true, data: course });
+});
