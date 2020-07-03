@@ -120,9 +120,9 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   }
 
   // Trigger the remove middleware
-  bootcamp.remove();
+  await bootcamp.remove();
 
-  res.status(200).json({ success: true });
+  res.status(200).json({ success: true, data: {} });
 });
 
 // @desc    Get a bootcamp within given radius

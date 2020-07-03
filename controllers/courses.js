@@ -90,7 +90,7 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
   }
 
   // Trigger remove middleware
-  course.remove();
+  await course.remove();
 
-  res.status(200).json({ success: true });
+  res.status(200).json({ success: true, data: {} });
 });
