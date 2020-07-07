@@ -8,64 +8,7 @@ const geocoder = require("../utils/geocoder");
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  let query;
-
-  // The copy should not contain these fields
-  // They are added as query projection
-  const reqQuery = { ...req.query };
-  const excludeFieldsList = ["select", "sort", "page", "limit"];
-  excludeFieldsList.forEach((param) => delete reqQuery[param]);
-
-  // Use of operators in request
-  let queryStr = JSON.stringify(reqQuery);
-  queryStr = queryStr.replace(
-    /\b(lt|lte|gt|gte|in)\b/g,
-    (match) => `$${match}`
-  );
-
-  query = Bootcamp.find(JSON.parse(queryStr)).populate("courses");
-
-  // Project the requested fields (select)
-  if (req.query.select) {
-    const fields = req.query.select.split(",").join(" ");
-    query = query.select(fields);
-  }
-
-  // Sorting
-  if (req.query.sort) {
-    const sortInstruction = req.query.sort.split(",").join(" ");
-    console.log(sortInstruction);
-    query = query.sort(sortInstruction);
-  } else {
-    query = query.sort("-createdAt");
-  }
-
-  // Pagination
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 25;
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-  const total = await Bootcamp.countDocuments();
-
-  query = query.skip(startIndex).limit(limit);
-
-  const pagination = { limit };
-
-  if (endIndex < total) {
-    pagination.next = page + 1;
-  }
-
-  if (startIndex > 0) {
-    pagination.previous = page - 1;
-  }
-
-  const bootcamps = await query;
-  res.status(200).json({
-    success: true,
-    data: bootcamps,
-    pagination,
-    count: bootcamps.length,
-  });
+  res.status(200).json(res.advancedResults);
 });
 
 // @desc    Get a single bootcamp
