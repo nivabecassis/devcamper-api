@@ -24,7 +24,10 @@ const errorHandler = (err, req, res, next) => {
     );
   }
 
-  console.log(`Error: ${error.message}`);
+  if (process.env.NODE_ENV === "dev") {
+    console.error(`Error: ${error.message}`.red);
+  }
+
   res.status(error.statusCode).json({ success: false, error: error.message });
 };
 
