@@ -25,3 +25,18 @@ exports.protect = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Not authorized to access this route", 401));
   }
 });
+
+// Authorization based on user roles (user, publisher, admin)
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ApiError(
+          `User role '${req.user.role}' is not authorized to access this route.`,
+          403
+        )
+      );
+    }
+    next();
+  };
+};
