@@ -42,11 +42,23 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
   // Set the bootcampId in the body
   req.body.bootcamp = req.params.bootcampId;
 
+  // Set the user in the body of the request
+  req.body.user = req.user.id;
+
   // Make sure the specified bootcamp exists
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
   if (!bootcamp) {
     return next(
       new ApiError(`Resource not found with ID ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ApiError(
+        `User '${req.user.id}' is not authorized to add a course to bootcamp '${bootcamp._id}'`,
+        401
+      )
     );
   }
 
@@ -58,16 +70,27 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/courses/:id
 // @access  Private
 exports.updateCourse = asyncHandler(async (req, res, next) => {
-  let course = await Course.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  let course = await Course.findById(req.params.id);
 
   if (!course) {
     return next(
       new ApiError(`Resource not found with ID ${req.params.bootcampId}`, 404)
     );
   }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ApiError(
+        `User '${req.user.id}' is not authorized to update course '${course._id}'`,
+        401
+      )
+    );
+  }
+
+  course = await Course.findOneAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   res.status(200).json({ success: true, data: course });
 });
@@ -80,6 +103,15 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
   if (!course) {
     return next(
       new ApiError(`Resource not found with ID ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ApiError(
+        `User '${req.user.id}' is not authorized to delete course '${course._id}'`,
+        401
+      )
     );
   }
 
