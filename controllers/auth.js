@@ -1,5 +1,6 @@
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../middleware/async");
+const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const User = require("../models/User");
 
@@ -46,6 +47,7 @@ exports.loginUser = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/auth/me
 // @access  Private
 exports.getMe = asyncHandler(async (req, res, next) => {
+  // User already authenticated through protect middleware
   const user = await User.findById(req.user.id);
 
   res.status(200).json({
@@ -55,7 +57,7 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    User forget password
-// @route   GET /api/v1/auth/forgotPassword
+// @route   POST /api/v1/auth/forgotPassword
 // @access  Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
@@ -73,7 +75,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   // User will hit this URL to reset their password
   const resetUrl = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/resetPassword/${resetToken}`;
+  )}/api/v1/auth/resetPassword/${resetToken}`;
 
   const emailText = `You are receiving this email because you or someone else has requested for a password reset. Please make a PUT request to:\n\n${resetUrl}`;
 
@@ -100,8 +102,42 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+// @desc    User resets their password with generated token
+// @route   PUT /api/v1/auth/resetPassword/:resettoken
+// @access  Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Hash the given reset token
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  // Find the user based on the hashed token & the token
+  // expiration must be later than current date
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ApiError("Invalid token", 400));
+  }
+
+  // Save the new password and clear the reset password fields
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 /**
  * Sends a token response stored in a cookie
+ *
+ * @param {Object} user User object to save
+ * @param {Number} statusCode Status code to send in response
+ * @param {Object} res Response object used for express
  */
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
