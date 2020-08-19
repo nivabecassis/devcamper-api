@@ -55,7 +55,7 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    User forget password
-// @route   GET /api/v1/auth/resetPassword
+// @route   GET /api/v1/auth/forgotPassword
 // @access  Public
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
@@ -66,11 +66,11 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // Generate reset password token and expiration
   const resetToken = user.getResetPasswordToken();
-
   await user.save({ validateBeforeSave: false });
 
-  // Email options
+  // User will hit this URL to reset their password
   const resetUrl = `${req.protocol}://${req.get(
     "host"
   )}/api/v1/resetPassword/${resetToken}`;
@@ -91,9 +91,9 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   } catch (err) {
     console.error(err);
 
+    // Reset the forgot password token and expiration
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-
     await user.save({ validateBeforeSave: false });
 
     return next(new ApiError("Could not send email", 500));
