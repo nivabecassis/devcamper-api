@@ -56,6 +56,12 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+/**
+ * Generates a hex reset token (length = 20).
+ * The token is hashed in sha256 and stored in the User object with the expiration.
+ *
+ * @return The reset token (not hashed)
+ */
 UserSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
